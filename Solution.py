@@ -62,10 +62,7 @@ class Solution:
 
 if __name__ == "__main__":
 
-    start_http_server(8080)
     solution = Solution()
-
-    # To Print Details
     datafm=solution.print_symbols('BTC','volume')
     print(datafm)
     datafm=solution.print_symbols('USDT', 'count')
@@ -76,7 +73,7 @@ if __name__ == "__main__":
     print(datafm)
 
     InfinitLoop=True
-
+    start_http_server(8080)
     while InfinitLoop:
         delta = {}
         old = solution.print_spread('USDT', 'count')
