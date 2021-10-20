@@ -1,7 +1,7 @@
-import time
-import requests
 import pandas as data_processer
 from prometheus_client import start_http_server, Gauge
+import time
+import requests
 
 
 class Solution:
