@@ -52,7 +52,6 @@ class Solution:
                 datafm['notional'] = datafm['price'] * datafm['quantity']
                 datafm['notional'].sum()
                 notion[sym + '_' + col] = datafm['notional'].sum()
-
         return notion
 
     def print_spread(self, sym, field):
@@ -62,7 +61,6 @@ class Solution:
         if syms is None:
          return
         else:
-
          for sym in syms['symbol']:
             uri = { 'symbol' : sym }
             try:
@@ -72,15 +70,12 @@ class Solution:
               return
             price = req.json()
             spread[sym] = float(price['askPrice']) - float(price['bidPrice'])
-
         return spread
 
 
 if __name__ == "__main__":
 
     solution = Solution()
-
-    # To Print Details
     datafm=solution.print_symbols('BTC','volume')
     print(datafm)
     datafm=solution.print_symbols('USDT', 'count')
@@ -94,18 +89,14 @@ if __name__ == "__main__":
     try:
      start_http_server(8080)
     except Exception as exc:
-              print("Server not started",exc)
-             
+              print("Server not started",exc)      
     while InfinitLoop:
         delta = {}
         old = solution.print_spread('USDT', 'count')
         time.sleep(10)
         new = solution.print_spread('USDT', 'count')
-
         for key in old:
             delta[key] = abs(old[key]-new[key])
-
         for key in delta:
             solution.prometheus_metrics.labels(key).set(delta[key])
-
             print(delta)
