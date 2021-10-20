@@ -62,7 +62,7 @@ class Solution:
 
 if __name__ == "__main__":
 
-    start_http_server(808)
+    start_http_server(8080)
     solution = Solution()
 
     # To Print Details
