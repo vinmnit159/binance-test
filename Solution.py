@@ -1,8 +1,8 @@
+
 import pandas as data_processer
 from prometheus_client import start_http_server, Gauge
 import time
 import requests
-
 
 class Solution:
 
@@ -19,22 +19,22 @@ class Solution:
                         'Delta of Spread', ['symbol'])
 
 
-    def print_symbols(self, sym, field):
+    def print_symbols(self, sym, data_value):
         try:
           req = requests.get(self.BINANCE_API_URL + self.Symbol_URL)
         except Exception as exc:
           print ("API ERROR",exc)
           return
         datafm = data_processer.DataFrame(req.json())
-        datafm = datafm[['symbol', field]]
+        datafm = datafm[['symbol', data_value]]
         datafm = datafm[datafm.symbol.str.contains(r'(?!$){}$'.format(sym))]
-        datafm[field] = data_processer.to_numeric(datafm[field], downcast='float', errors='coerce')
-        datafm = datafm.sort_values(by=[field], ascending=False).head(5)
+        datafm[data_value] = data_processer.to_numeric(datafm[data_value], downcast='float', errors='coerce')
+        datafm = datafm.sort_values(by=[data_value], ascending=False).head(5)
         return datafm
 
-    def print_notional(self, sym, field):
+    def print_notional(self, sym, data_value):
  
-        syms = self.print_symbols(sym, field)
+        syms = self.print_symbols(sym, data_value)
         notion = {}
         if syms is None:
          return
@@ -47,20 +47,22 @@ class Solution:
               print("API ERROR",exc)
               return
             for col in ["bids", "asks"]:
-                datafm = data_processer.DataFrame(data=req.json()[col], columns=["price", "quantity"], dtype=float)
-                datafm = datafm.sort_values(by=['price'], ascending=False).head(200)
-                datafm['notional'] = datafm['price'] * datafm['quantity']
+                datafm = data_processer.DataFrame(data=req.json()[col], columns=["value", "qunt"], dtype=float)
+                datafm = datafm.sort_values(by=['value'], ascending=False).head(200)
+                datafm['notional'] = datafm['value'] * datafm['qunt']
                 datafm['notional'].sum()
                 notion[sym + '_' + col] = datafm['notional'].sum()
+
         return notion
 
-    def print_spread(self, sym, field):
+    def print_spread(self, sym, data_value):
 
-        syms = self.print_symbols(sym, field)
+        syms = self.print_symbols(sym, data_value)
         spread = {}
         if syms is None:
          return
         else:
+
          for sym in syms['symbol']:
             uri = { 'symbol' : sym }
             try:
@@ -70,12 +72,15 @@ class Solution:
               return
             price = req.json()
             spread[sym] = float(price['askPrice']) - float(price['bidPrice'])
+
         return spread
 
 
 if __name__ == "__main__":
 
     solution = Solution()
+
+    # To Print Details
     datafm=solution.print_symbols('BTC','volume')
     print(datafm)
     datafm=solution.print_symbols('USDT', 'count')
@@ -89,14 +94,18 @@ if __name__ == "__main__":
     try:
      start_http_server(8080)
     except Exception as exc:
-              print("Server not started",exc)      
+              print("Server not started",exc)
+             
     while InfinitLoop:
         delta = {}
         old = solution.print_spread('USDT', 'count')
         time.sleep(10)
         new = solution.print_spread('USDT', 'count')
+
         for key in old:
             delta[key] = abs(old[key]-new[key])
+
         for key in delta:
             solution.prometheus_metrics.labels(key).set(delta[key])
+
             print(delta)
